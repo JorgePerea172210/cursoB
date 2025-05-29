@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using apiProject.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace apiProject.Controllers
@@ -7,6 +8,14 @@ namespace apiProject.Controllers
     [ApiController]
     public class PeopleController : ControllerBase
     {
+        private IPeopleService _peopleService;
+
+        public PeopleController([FromKeyedServices("people2Service")]IPeopleService peopleService)
+        {
+            _peopleService = peopleService;
+        }
+
+
         [HttpGet("all")]
         public List<People> GetPeople() => Repository.People;
 
@@ -16,6 +25,19 @@ namespace apiProject.Controllers
         [HttpGet("search/{word}")]
         public List<People> Get(string word) =>
             Repository.People.Where(p => p.Name.ToUpper().Contains(word.ToUpper())).ToList();
+
+
+        [HttpPost]
+        public IActionResult Add(People people)
+        {
+            if (!_peopleService.Validate(people))
+            {
+                return BadRequest();
+            }
+
+            Repository.People.Add(people);
+            return NoContent();
+        }
     }
 
     public class Repository
